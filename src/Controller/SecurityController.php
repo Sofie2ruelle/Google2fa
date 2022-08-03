@@ -2,10 +2,14 @@
 
 namespace App\Controller;
 
+# use PhpParser\Parser\Tokens;
+use Scheb\TwoFactorBundle\Security\TwoFactor\Provider\Google\GoogleAuthenticatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+# use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface as StorageTokenStorageInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class SecurityController extends AbstractController
 {
@@ -28,5 +32,15 @@ class SecurityController extends AbstractController
     public function logout(): void
     {
         throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
+    }
+
+    #[Route(path: '/2fa', name: 'app_2fa_login')]
+    public function check2fa(GoogleAuthenticatorInterface $authenticator, TokenStorageInterface $tokenStorage)
+    {
+        $Code = $authenticator->getQRContent($tokenStorage->getToken()->getUser());
+        $qrCode = 'http://chart.apis.google.com/chart?chs=180x180&choe=UTF-8&cht=qr&chl'.$Code;
+        return $this->render('security/2fa_login.html.twig', [
+            'qrCode' => $qrCode
+        ]);
     }
 }
